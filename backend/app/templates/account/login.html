@@ -8,11 +8,31 @@
 
 {% block content %}
 {% get_providers as socialaccount_providers %}
+<script>
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.command === 'silent_login') {
+      if (e.data.token) {
+        const url = `/accounts/silent_login/?token=${e.data.token}`;
+        fetch(url + '&check').then(
+          (response) => {
+            if (!response.ok) {
+              document.querySelector('.silent-login-error').style.display = 'block';
+            } else {
+              location.replace(`/accounts/silent_login/?token=${e.data.token}`);
+            };
+          }
+        );
+      }
+    };
+  });
+</script>
 <div class="container">
   <div class="row justify-content-center logreg">
     <div class="col-sm-12 col-md-10 col-lg-8 col-xl-6">
       <div id="logreg-forms">
         <h1 class="text-center">{% trans "SIGN IN" %}</h1>
+
+        <div class="silent-login-error" style="display: none; color: red">Could not log in with token.</div>
 
         {% if socialaccount_providers %}
         <div class="social-login">

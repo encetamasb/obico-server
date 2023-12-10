@@ -42,6 +42,28 @@ def index(request):
         return redirect('/accounts/login/')
 
 
+def silent_login(request):
+    from rest_framework.authtoken.models import Token
+    from django.contrib.auth import login as auth_login
+    raw_token = request.GET.get('token')
+    check = 'check' in request.GET
+
+    if raw_token:
+        token = Token.objects.filter(key=raw_token).first()
+        if token:
+            if check:
+                return HttpResponse('ok')
+
+            setattr(token.user, 'backend', 'django.contrib.auth.backends.ModelBackend')
+            auth_login(request, token.user)
+            return redirect('/')
+
+    if check:
+        return HttpResponseForbidden('token missing or invalid')
+
+    return redirect('/accounts/login/')
+
+
 class SocialAccountAwareLoginView(LoginView):
     form_class = SocialAccountAwareLoginForm
 
